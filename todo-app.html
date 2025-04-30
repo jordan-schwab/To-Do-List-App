@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List App</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 32px;
+            font-weight: 700;
+        }
+        
+        .input-group {
+            display: flex;
+            margin-bottom: 20px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .task-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            font-family: 'Quicksand', sans-serif;
+            min-width: 200px;
+        }
+        
+        .date-input {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: 'Quicksand', sans-serif;
+        }
+        
+        .color-selector {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background-color: white;
+            cursor: pointer;
+        }
+        
+        .add-btn {
+            padding: 12px 20px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        
+        .add-btn:hover {
+            background-color: #3e8e41;
+        }
+        
+        .task-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+        
+        .task-item:hover {
+            transform: translateY(-2px);
+        }
+        
+        .task-text {
+            flex: 1;
+            font-size: 22px;
+            font-weight: 500;
+            margin-right: 15px;
+            word-break: break-word;
+        }
+        
+        .task-date {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #ff5252;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 5px;
+        }
+        
+        .task-info {
+            flex: 1;
+        }
+        
+        .color-red { background-color: #ffebee; border-left: 5px solid #f44336; }
+        .color-orange { background-color: #fff3e0; border-left: 5px solid #ff9800; }
+        .color-yellow { background-color: #fffde7; border-left: 5px solid #ffc107; }
+        .color-green { background-color: #e8f5e9; border-left: 5px solid #4caf50; }
+        .color-blue { background-color: #e3f2fd; border-left: 5px solid #2196f3; }
+        .color-purple { background-color: #f3e5f5; border-left: 5px solid #9c27b0; }
+        
+        .empty-state {
+            text-align: center;
+            color: #777;
+            margin: 40px 0;
+            font-size: 18px;
+        }
+        
+        @media (max-width: 600px) {
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .task-input, .date-input, .color-selector, .add-btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>My To-Do List</h1>
+        
+        <div class="input-group">
+            <input type="text" class="task-input" id="taskInput" placeholder="Add a new task...">
+            <input type="date" class="date-input" id="dateInput">
+            <select class="color-selector" id="colorSelector">
+                <option value="color-red">Red</option>
+                <option value="color-orange">Orange</option>
+                <option value="color-yellow">Yellow</option>
+                <option value="color-green">Green</option>
+                <option value="color-blue">Blue</option>
+                <option value="color-purple">Purple</option>
+            </select>
+            <button class="add-btn" id="addBtn">Add Task</button>
+        </div>
+        
+        <ul class="task-list" id="taskList">
+            <div class="empty-state" id="emptyState">
+                <p>Your to-do list is empty. Add a task to get started!</p>
+            </div>
+        </ul>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const taskInput = document.getElementById('taskInput');
+            const dateInput = document.getElementById('dateInput');
+            const colorSelector = document.getElementById('colorSelector');
+            const addBtn = document.getElementById('addBtn');
+            const taskList = document.getElementById('taskList');
+            const emptyState = document.getElementById('emptyState');
+            
+            // In-memory storage for tasks
+            let tasks = [];
+            
+            // Set today's date as the default
+            const today = new Date();
+            const formattedDate = today.toISOString().substr(0, 10);
+            dateInput.value = formattedDate;
+            
+            addBtn.addEventListener('click', addTask);
+            
+            // Allow adding tasks with Enter key
+            taskInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addTask();
+                }
+            });
+            
+            function addTask() {
+                const taskText = taskInput.value.trim();
+                if (taskText === '') return;
+                
+                const taskDate = dateInput.value;
+                const taskColor = colorSelector.value;
+                
+                const task = {
+                    text: taskText,
+                    date: taskDate,
+                    color: taskColor,
+                    id: Date.now()
+                };
+                
+                // Add to in-memory array
+                tasks.push(task);
+                
+                createTaskElement(task);
+                
+                // Clear input
+                taskInput.value = '';
+                
+                // Focus back on input
+                taskInput.focus();
+                
+                // Hide empty state if visible
+                if (emptyState.style.display !== 'none') {
+                    emptyState.style.display = 'none';
+                }
+            }
+            
+            function createTaskElement(task) {
+                const li = document.createElement('li');
+                li.classList.add('task-item', task.color || 'color-blue'); // Default to blue if no color
+                li.dataset.id = task.id;
+                
+                const displayDate = formatDate(task.date);
+                
+                li.innerHTML = `
+                    <div class="task-info">
+                        <div class="task-date">${displayDate}</div>
+                        <div class="task-text">${task.text}</div>
+                    </div>
+                    <button class="delete-btn"><i class="fas fa-trash"></i></button>
+                `;
+                
+                // Add event listener to delete button
+                const deleteBtn = li.querySelector('.delete-btn');
+                deleteBtn.addEventListener('click', function() {
+                    // Remove from in-memory array
+                    tasks = tasks.filter(t => t.id !== parseInt(li.dataset.id));
+                    
+                    li.remove();
+                    
+                    // Show empty state if no tasks left
+                    if (taskList.querySelectorAll('.task-item').length === 0) {
+                        emptyState.style.display = 'block';
+                    }
+                });
+                
+                taskList.appendChild(li);
+            }
+            
+            function formatDate(dateString) {
+                const options = { weekday: 'short', month: 'short', day: 'numeric' };
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', options);
+            }
+        });
+    </script>
+</body>
+</html>
